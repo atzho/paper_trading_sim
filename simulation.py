@@ -18,9 +18,10 @@ def get_historical_data(tickers, start, end):
 class Simulation:
 
     # name, portfolio, date, balance
-    def __init__(this, name, portfolio, date=None, balance=None):
+    def __init__(this, name, portfolio, date=None, balance=None, deposits=0):
         this.portfolio = portfolio
         this.name = name
+        this.deposits = deposits
         if date:
             this.date = date
         else:
@@ -36,20 +37,21 @@ class Simulation:
         return sum([shares * get_price_at(ticker, this.date) for ticker, shares in this.portfolio.items()])
 
     def gains(this):
-        return this.balance + this.value()
+        return this.balance + this.value() - this.deposits
 
     def present_value(this):
         return sum([shares * get_last_price(ticker) for ticker, shares in this.portfolio.items()])
 
     def present_gains(this):
-        return this.balance + this.present_value()
+        return this.balance + this.present_value() - this.deposits
 
     # Actions
     def deposit(this, amount):
         this.balance += amount
+        this.deposits += amount
         this.log('Deposited %f. Balance: %f' % (amount, this.balance))
     
-    def buy_stocks(this, stocks):
+    def buy(this, stocks):
         for ticker, shares in stocks.items():
             this.balance -= get_price_at(ticker, this.date) * shares
             if ticker in this.portfolio:
@@ -61,7 +63,7 @@ class Simulation:
         this.log('Bought %s on %s. Balance: %f. Portfolio value: %f'
                       % (repr(stocks), this.date, this.balance, this.value()))
                          
-    def sell_stocks(this, stocks):
+    def sell(this, stocks):
         for ticker, shares in stocks.items():
             this.balance += get_price_at(ticker, this.date) * shares
             if ticker in this.portfolio:
@@ -80,14 +82,16 @@ class Simulation:
         return cls(data['name'],
                    data['portfolio'],
                    data['date'],
-                   data['balance'])
+                   data['balance'],
+                   data['deposits'])
 
     def save_to_json(this):
         with open(this.name + '.json', 'w') as file:
             save = json.dump({'name': this.name,
                               'date': this.date,
                               'portfolio' : this.portfolio,
-                              'balance': this.balance},
+                              'balance': this.balance,
+                              'deposits': this.deposits},
                              file)
     def log(this, msg):
         open(this.name + '.log', 'a').write(msg + '\n')
