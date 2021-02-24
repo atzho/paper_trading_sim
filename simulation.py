@@ -31,14 +31,7 @@ class Simulation:
         else:
             this.balance = -this.value()
 
-    @classmethod
-    def load_json(cls, filepath):
-        data = json.load(open(filepath))
-        return cls(data['name'],
-                   data['portfolio'],
-                   data['date'],
-                   data['balance'])
-
+    # Value calculations
     def value(this):
         return sum([shares * get_price_at(ticker, this.date) for ticker, shares in this.portfolio.items()])
 
@@ -51,6 +44,11 @@ class Simulation:
     def present_gains(this):
         return this.balance + this.present_value()
 
+    # Actions
+    def deposit(this, amount):
+        this.balance += amount
+        this.log('Deposited %f. Balance: %f' % (amount, this.balance))
+    
     def buy_stocks(this, stocks):
         for ticker, shares in stocks.items():
             this.balance -= get_price_at(ticker, this.date) * shares
@@ -58,8 +56,11 @@ class Simulation:
                 this.portfolio[ticker] += shares
             else:
                 this.portfolio[ticker] = shares
+                
         this.save_to_json()
-
+        this.log('Bought %s on %s. Balance: %f. Portfolio value: %f'
+                      % (repr(stocks), this.date, this.balance, this.value()))
+                         
     def sell_stocks(this, stocks):
         for ticker, shares in stocks.items():
             this.balance += get_price_at(ticker, this.date) * shares
@@ -67,7 +68,19 @@ class Simulation:
                 this.portfolio[ticker] -= shares
             else:
                 this.portfolio[ticker] = shares
+                
         this.save_to_json()
+        this.log('Sold %s on %s. Balance: %f. Portfolio value: %f'
+                      % (repr(stocks), this.date, this.balance, this.value()))
+
+    # File Interactions
+    @classmethod
+    def load_json(cls, filepath):
+        data = json.load(open(filepath))
+        return cls(data['name'],
+                   data['portfolio'],
+                   data['date'],
+                   data['balance'])
 
     def save_to_json(this):
         with open(this.name + '.json', 'w') as file:
@@ -76,5 +89,7 @@ class Simulation:
                               'portfolio' : this.portfolio,
                               'balance': this.balance},
                              file)
+    def log(this, msg):
+        open(this.name + '.log', 'a').write(msg + '\n')
 
 sim = Simulation.load_json('test_sim.json')
