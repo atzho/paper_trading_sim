@@ -3,3 +3,6 @@ Deposited 500.000000. Balance: -2297.460052
 Sold {'MSFT': 8, 'AAPL': 40} on 2021-2-24. Balance: 4540.220001. Portfolio value: 959.779999
 Deposited 500.000000. Balance: -208.180016
 Sold {'AAPL': 4} on 2021-2-24. Balance: 291.579994. Portfolio value: 208.420006
+Sold {'AAPL': 1, 'AAL': 4} on 2021-2-24. Balance: 516.049988. Portfolio value: 0.000000
+Bought {'AMZN': 1, 'MSFT': 15, 'FB': 15, 'GOOGL': 2, 'V': 15} on 2021-2-24. Balance: -17281.279816. Portfolio value: 17797.329803
+Bought {'SPY': 44} on 2021-2-24. Balance: -34279.799225. Portfolio value: 34795.849213

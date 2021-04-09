@@ -2,23 +2,36 @@ import yfinance as yf
 import pandas as pd
 import json
 
+# Author: Andrew Zhong
+
 def get_last_price(ticker):
     return yf.Ticker(ticker).history().tail(1)['Close'].iloc[0]
 
 def get_price_at(ticker, date):
-    return yf.Ticker(ticker).history(date)['Open'][0]
+    tmr_ts = pd.Timestamp(date) + pd.to_timedelta(1, unit='d')
+    tomorrow = '%i-%i-%i' % (tmr_ts.year, tmr_ts.month, tmr_ts.day)
+
+    try:
+        return get_historical_data([ticker], date, tomorrow)[ticker].Open[0]
+    except:
+        raise Exception('No data found for date %s' % date)
 
 # start and end in "YEAR-MO-DA" format, with 0s in front
 def get_historical_data(tickers, start, end):
+    if len(tickers) == 0:
+        raise Exception('No tickers provided')
     data = yf.download(tickers, start=start,
                        end=end, group_by='tickers')
-
-    series = {ticker : data[ticker]['Open'] for ticker in tickers}
+    if len(data.columns) == 6:
+        series = {tickers[0] : data}
+    else:
+        series = {ticker : data[ticker]['Open'] for ticker in tickers}
+    return series
 
 class Simulation:
 
     # name, portfolio, date, balance
-    def __init__(this, name, portfolio, date=None, balance=None, deposits=0):
+    def __init__(this, portfolio, name=None, date=None, balance=None, deposits=0):
         this.portfolio = portfolio
         this.name = name
         this.deposits = deposits
@@ -31,6 +44,10 @@ class Simulation:
             this.balance = balance
         else:
             this.balance = -this.value()
+
+    def update_date(this):
+        today = pd.Timestamp.today()
+        this.date = '%i-%i-%i' % (today.year, today.month, today.day)
 
     # Value calculations
     def value(this):
@@ -96,4 +113,6 @@ class Simulation:
     def log(this, msg):
         open(this.name + '.log', 'a').write(msg + '\n')
 
-sim = Simulation.load_json('test_sim.json')
+##if __name__ == "__main__":
+##    sim = Simulation.load_json('test_sim.json')
+        
